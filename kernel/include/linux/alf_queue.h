@@ -61,7 +61,7 @@ void		  alf_queue_free(struct alf_queue *q);
  */
 static inline int
 alf_mp_enqueue(const u32 n;
-	       struct alf_queue *q, void *ptr[n], const u32 n)
+	       struct alf_queue *q, void *ptr, const u32 n)
 {
 	u32 p_head, p_next, c_tail, space;
 
@@ -100,7 +100,7 @@ alf_mp_enqueue(const u32 n;
 /* Main Multi-Consumer DEQUEUE */
 static inline int
 alf_mc_dequeue(const u32 n;
-	       struct alf_queue *q, void *ptr[n], const u32 n)
+	       struct alf_queue *q, void *ptr, const u32 n)
 {
 	u32 c_head, c_next, p_tail, elems;
 
@@ -159,7 +159,7 @@ alf_mc_dequeue(const u32 n;
  */
 static inline int
 alf_sp_enqueue(const u32 n;
-	       struct alf_queue *q, void *ptr[n], const u32 n)
+	       struct alf_queue *q, void *ptr, const u32 n)
 {
 	u32 p_head, p_next, c_tail, space;
 
@@ -194,7 +194,7 @@ alf_sp_enqueue(const u32 n;
  */
 static inline int
 alf_sc_dequeue(const u32 n;
-	       struct alf_queue *q, void *ptr[n], const u32 n)
+	       struct alf_queue *q, void *ptr, const u32 n)
 {
 	u32 c_head, c_next, p_tail, elems;
 

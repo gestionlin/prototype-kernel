@@ -180,8 +180,8 @@ int ring_queue_set_water_mark(struct ring_queue *r, unsigned count);
 			r->ring[idx+3] = obj_table[i+3]; \
 		} \
 		switch (n & 0x3) { \
-			case 3: r->ring[idx++] = obj_table[i++]; \
-			case 2: r->ring[idx++] = obj_table[i++]; \
+			case 3: r->ring[idx++] = obj_table[i++]; fallthrough;\
+			case 2: r->ring[idx++] = obj_table[i++]; fallthrough;\
 			case 1: r->ring[idx++] = obj_table[i++]; \
 		} \
 	} else { \
@@ -207,8 +207,8 @@ int ring_queue_set_water_mark(struct ring_queue *r, unsigned count);
 			obj_table[i+3] = r->ring[idx+3]; \
 		} \
 		switch (n & 0x3) { \
-			case 3: obj_table[i++] = r->ring[idx++]; \
-			case 2: obj_table[i++] = r->ring[idx++]; \
+			case 3: obj_table[i++] = r->ring[idx++]; fallthrough;\
+			case 2: obj_table[i++] = r->ring[idx++]; fallthrough;\
 			case 1: obj_table[i++] = r->ring[idx++]; \
 		} \
 	} else { \

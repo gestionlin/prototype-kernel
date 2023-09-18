@@ -47,7 +47,6 @@ extern void kernel_fpu_end(void);
 static char global_buf[GLOBAL_BUF_SIZE];
 
 #ifndef XSAVE_YMM_SIZE
-#warning "Defining XSAVE_YMM_SIZE locally"
 #define XSAVE_YMM_SIZE	256
 #endif
 
@@ -524,8 +523,10 @@ void mem_zero_crazy_loop_unroll2(void *ptr, const unsigned int qword)
 	switch(qword & 0x3) {
 	case 3:
 		data[i+2] = VALUE;
+		fallthrough;
 	case 2:
 		data[i+1] = VALUE;
+		fallthrough;
 	case 1:
 		data[i]   = VALUE;
 	}
