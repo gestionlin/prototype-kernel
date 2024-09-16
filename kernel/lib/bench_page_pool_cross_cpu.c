@@ -86,7 +86,7 @@ void _page_pool_put_page(struct page_pool *pool, struct page *page,
  *
  */
 
-bool init_cpu_queue(struct ptr_ring *queue, int q_size, int prefill,
+static bool init_cpu_queue(struct ptr_ring *queue, int q_size, int prefill,
 		    struct page_pool *pp)
 {
 	gfp_t gfp_mask = (GFP_KERNEL);
@@ -139,7 +139,7 @@ static void pp_prefill(struct page_pool *pp, int elems)
 	kfree(array);
 }
 
-struct page_pool *pp_create(int pool_size, unsigned int prefill)
+static struct page_pool *pp_create(int pool_size, unsigned int prefill)
 {
 	struct page_pool *pp;
 	int err;
@@ -299,7 +299,7 @@ static int time_pp_put_page_recycle(
 	return loops_cnt;
 }
 
-int run_parallel(const char *desc, uint32_t nr_loops, const cpumask_t *cpumask,
+static int run_parallel(const char *desc, uint32_t nr_loops, const cpumask_t *cpumask,
 		 int step, void *data,
 		 int (*func)(struct time_bench_record *record, void *data)
 	)
@@ -330,7 +330,7 @@ static void empty_ptr_ring(struct page_pool *pp, struct ptr_ring *ring)
 	}
 }
 
-void noinline run_bench_pp_cpus(
+static void noinline run_bench_pp_cpus(
 	int nr_cpus, uint32_t nr_loops, int q_size, int prefill)
 {
 	struct ptr_ring *cpu_queues;
@@ -388,7 +388,7 @@ fail:
 	page_pool_destroy(pp);
 }
 
-int run_benchmarks(void)
+static int run_benchmarks(void)
 {
 	uint32_t nr_loops = loops;
 

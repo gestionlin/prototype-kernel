@@ -9,7 +9,8 @@
 #  can be overwritten by setting it on make cmdline like:
 # make kbuilddir=~/git/kernel/net-next/
 #
-kbuilddir ?= /lib/modules/$(shell uname -r)/build/
+#kbuilddir ?= /lib/modules/$(shell uname -r)/build/
+kbuilddir ?= /home/yunshenglin/linux/
 
 # Trick to modify kernels CFLAGS
 #KBUILD_CFLAGS+=-g -O0

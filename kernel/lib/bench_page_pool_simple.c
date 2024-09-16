@@ -156,18 +156,10 @@ enum test_type {
 	type_page_allocator
 };
 
-/* Depends on compile optimizing this function */
-static __always_inline
-int time_bench_page_pool(
-	struct time_bench_record *rec, void *data,
-	enum test_type type, const char *func)
+static struct page_pool *pp;
+static int time_bench_page_pool_create(void)
 {
-	uint64_t loops_cnt = 0;
-	gfp_t gfp_mask = GFP_ATOMIC; /* GFP_ATOMIC is not really needed */
-	int i, err;
-
-	struct page_pool *pp;
-	struct page *page;
+	int err;
 
 	struct page_pool_params pp_params = {
 		.order = 0,
@@ -181,11 +173,26 @@ int time_bench_page_pool(
 	pp = page_pool_create(&pp_params);
 	if (IS_ERR(pp)) {
 		err = PTR_ERR(pp);
-		pr_warn("%s: Error(%d) creating page_pool\n", func, err);
-		goto out;
+		pp = NULL;
+		pr_warn("%s: Error(%d) creating page_pool\n", __func__, err);
+		return err;
 	}
 	pp_fill_ptr_ring(pp, 64);
 
+	return 0;
+}
+
+/* Depends on compile optimizing this function */
+static __always_inline
+int time_bench_page_pool(
+	struct time_bench_record *rec, void *data,
+	enum test_type type, const char *func)
+{
+	uint64_t loops_cnt = 0;
+	gfp_t gfp_mask = GFP_ATOMIC; /* GFP_ATOMIC is not really needed */
+	int i;
+	struct page *page;
+	
 	if (in_serving_softirq())
 		pr_warn("%s(): in_serving_softirq fast-path\n", func);
 	else
@@ -229,24 +236,22 @@ int time_bench_page_pool(
 		}
 	}
 	time_bench_stop(rec, loops_cnt);
-out:
-	page_pool_destroy(pp);
 	return loops_cnt;
 }
 
-int time_bench_page_pool01_fast_path(
+static int time_bench_page_pool01_fast_path(
 	struct time_bench_record *rec, void *data)
 {
 	return time_bench_page_pool(rec, data, type_fast_path, __func__);
 }
 
-int time_bench_page_pool02_ptr_ring(
+static int time_bench_page_pool02_ptr_ring(
 	struct time_bench_record *rec, void *data)
 {
 	return time_bench_page_pool(rec, data, type_ptr_ring, __func__);
 }
 
-int time_bench_page_pool03_slow(
+static int time_bench_page_pool03_slow(
 	struct time_bench_record *rec, void *data)
 {
 	return time_bench_page_pool(rec, data, type_page_allocator, __func__);
@@ -330,6 +335,8 @@ static int run_benchmark_tests(void)
 
 static int __init bench_page_pool_simple_module_init(void)
 {
+	int err;
+
 	if (verbose)
 		pr_info("Loaded\n");
 
@@ -338,6 +345,10 @@ static int __init bench_page_pool_simple_module_init(void)
 		       loops, U32_MAX);
 		return -ECHRNG;
 	}
+
+	err = time_bench_page_pool_create();
+	if (err)
+		return err;
 
 	run_benchmark_tests();
 
@@ -358,6 +369,9 @@ static void __exit bench_page_pool_simple_module_exit(void)
 
 	if (verbose)
 		pr_info("Unloaded\n");
+
+	if (pp)
+		page_pool_destroy(pp);
 }
 module_exit(bench_page_pool_simple_module_exit);
 
