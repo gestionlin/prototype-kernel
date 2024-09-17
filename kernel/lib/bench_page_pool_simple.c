@@ -131,6 +131,24 @@ static int time_bench_lock(
 	return loops_cnt;
 }
 
+static int time_bench_rcu(
+	struct time_bench_record *rec, void *data)
+{
+	uint64_t loops_cnt = 0;
+	int i;
+
+	time_bench_start(rec);
+	/** Loop to measure **/
+	for (i = 0; i < rec->loops; i++) {
+		rcu_read_lock();
+		loops_cnt++;
+		barrier(); /* avoid compiler to optimize this loop */
+		rcu_read_unlock();
+	}
+	time_bench_stop(rec, loops_cnt);
+	return loops_cnt;
+}
+
 /* Helper for filling some page's into ptr_ring */
 static void pp_fill_ptr_ring(struct page_pool *pp, int elems)
 {
@@ -314,6 +332,8 @@ static int run_benchmark_tests(void)
 				"atomic_inc", NULL, time_bench_atomic_inc);
 		time_bench_loop(nr_loops, 0,
 				"lock", NULL, time_bench_lock);
+		time_bench_loop(nr_loops*10, 0,
+				"rcu", NULL, time_bench_rcu);
 	}
 
 	/* This test cannot activate correct code path, due to no-softirq ctx */
