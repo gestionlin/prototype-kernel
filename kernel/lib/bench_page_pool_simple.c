@@ -149,6 +149,60 @@ static int time_bench_rcu(
 	return loops_cnt;
 }
 
+static int time_bench_virt_to_page(
+        struct time_bench_record *rec, void *data)
+{
+	struct page *page = alloc_pages_node(NUMA_NO_NODE, GFP_ATOMIC, 0);
+        uint64_t loops_cnt = 0;
+	unsigned long pg;
+	void *va;
+        int i;
+
+	if (!page)
+		pr_err("%s: alloc page failed\n", __FUNCTION__);
+
+	va = page_address(page);
+
+        time_bench_start(rec);
+        /** Loop to measure **/
+        for (i = 0; i < rec->loops; i++) {
+		pg = (volatile unsigned long)virt_to_page(va);
+                loops_cnt++;
+                barrier(); /* avoid compiler to optimize this loop */
+        }
+        time_bench_stop(rec, loops_cnt);
+
+	put_page((struct page *)pg);
+
+        return loops_cnt;
+}
+
+static int time_bench_page_address(
+        struct time_bench_record *rec, void *data)
+{
+	struct page *page = alloc_pages_node(NUMA_NO_NODE, GFP_ATOMIC, 0);
+        uint64_t loops_cnt = 0;
+	unsigned long virt;
+        int i;
+
+	if (!page)
+		pr_err("%s: alloc page failed\n", __FUNCTION__);
+
+        time_bench_start(rec);
+        /** Loop to measure **/
+        for (i = 0; i < rec->loops; i++) {
+		virt = (volatile unsigned long)page_address(page);
+                loops_cnt++;
+                barrier(); /* avoid compiler to optimize this loop */
+        }
+        time_bench_stop(rec, loops_cnt);
+
+	put_page(virt_to_page(virt));
+
+        return loops_cnt;
+}
+
+
 /* Helper for filling some page's into ptr_ring */
 static void pp_fill_ptr_ring(struct page_pool *pp, int elems)
 {
@@ -334,6 +388,10 @@ static int run_benchmark_tests(void)
 				"lock", NULL, time_bench_lock);
 		time_bench_loop(nr_loops*10, 0,
 				"rcu", NULL, time_bench_rcu);
+		time_bench_loop(nr_loops*10, 0,
+				"virt_to_page", NULL, time_bench_virt_to_page);
+		time_bench_loop(nr_loops*10, 0,
+				"page_address", NULL, time_bench_page_address);
 	}
 
 	/* This test cannot activate correct code path, due to no-softirq ctx */
